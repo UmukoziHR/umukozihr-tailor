@@ -1,0 +1,10 @@
+fastapi
+uvicorn[standard]
+jinja2
+python-multipart
+pydantic
+python-dotenv
+google-genai
+pypdf
+python-docx
+jsonschema

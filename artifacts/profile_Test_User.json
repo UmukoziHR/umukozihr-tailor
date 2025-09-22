@@ -1,0 +1,14 @@
+{
+  "name": "Test User",
+  "contacts": {
+    "email": "",
+    "phone": "",
+    "location": "",
+    "links": []
+  },
+  "summary": "",
+  "skills": [],
+  "experience": [],
+  "education": [],
+  "projects": []
+}
