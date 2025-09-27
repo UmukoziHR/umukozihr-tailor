@@ -89,7 +89,7 @@ export default function Home() {
               <FileText className="w-8 h-8 text-white" />
             </div>
             <div>
-              <h1 className="text-4xl font-bold text-gray-900">Resurator</h1>
+              <h1 className="text-4xl font-bold text-gray-900">UmukoziHR Resume Tailor</h1>
               <p className="text-lg text-gray-600 mt-1">AI-Powered Resume & Cover Letter Generator</p>
             </div>
           </div>

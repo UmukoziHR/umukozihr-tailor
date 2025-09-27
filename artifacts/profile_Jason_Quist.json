@@ -42,7 +42,7 @@
   ],
   "projects": [
     {
-      "name": "Resurator",
+      "name": "UmukoziHR Resume Tailor",
       "stack": [
         "FastAPI",
         "Next.js",
