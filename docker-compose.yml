@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:18
+    environment:
+      POSTGRES_USER: jason
+      POSTGRES_PASSWORD: 220300
+      POSTGRES_DB: umukozihr-resume-tailor
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+
+  api:
+    build: ./server
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://jason:220300@postgres/umukozihr-resume-tailor
+      REDIS_URL: redis://redis:6379/0
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-AIzaSyA4ewX_TqPVKCcDGRTqmA7FdIucJDUthPU}
+      SECRET_KEY: ${SECRET_KEY:-2)0S?Qr2k7£4X6D<[j([d0[@s5}
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - ./server:/app
+      - ./artifacts:/app/artifacts
+    restart: unless-stopped
+
+  celery-worker:
+    build: ./server
+    command: celery -A app.queue.tasks worker --loglevel=info
+    environment:
+      DATABASE_URL: postgresql://jason:220300@postgres/umukozihr-resume-tailor
+      REDIS_URL: redis://redis:6379/0
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-AIzaSyA4ewX_TqPVKCcDGRTqmA7FdIucJDUthPU}
+      SECRET_KEY: ${SECRET_KEY:-2)0S?Qr2k7£4X6D<[j([d0[@s5}
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - ./server:/app
+      - ./artifacts:/app/artifacts
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

@@ -1,5 +1,8 @@
-import os, subprocess, zipfile, glob, datetime
+import os, subprocess, zipfile, glob, datetime, logging
 from jinja2 import Environment, FileSystemLoader, select_autoescape, Template
+
+# Setup logging
+logger = logging.getLogger(__name__)
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))  # server/app
 TEMPLATE_DIR = os.path.join(BASE_DIR, "templates")
@@ -40,41 +43,79 @@ def render_tex(resume_ctx:dict, cl_ctx:dict, region:str, out_base:str):
     return resume_path, cover_letter_path
 
 def _latexmk(cwd:str, fname:str):
-    subprocess.run(
+    """Compile LaTeX using local latexmk"""
+    result = subprocess.run(
         ["latexmk", "-pdf", "-interaction=nonstopmode", "-halt-on-error", fname],
-        cwd=cwd, check=True, timeout=120
+        cwd=cwd, capture_output=True, text=True, timeout=120
     )
+    if result.returncode != 0:
+        raise Exception(f"latexmk failed with code {result.returncode}: {result.stderr}")
+    return result
 
 def _docker_latexmk(cwd:str, fname:str):
+    """Compile LaTeX using Docker container"""
     # Convert Windows path to Docker-compatible format
     docker_path = cwd.replace('\\', '/').replace('C:', '/c')
-    subprocess.run([
+    result = subprocess.run([
         "docker","run","--rm","-v",f"{docker_path}:/data","blang/latex:ctanfull",
         "latexmk","-pdf","-interaction=nonstopmode","-halt-on-error",fname
-    ], check=True, timeout=240)
+    ], capture_output=True, text=True, timeout=240)
+    if result.returncode != 0:
+        raise Exception(f"Docker latexmk failed with code {result.returncode}: {result.stderr}")
+    return result
 
-def compile_tex(tex_path:str):
+def compile_tex(tex_path:str) -> bool:
+    """Compile LaTeX to PDF. Returns True if successful, False otherwise."""
     cwd = os.path.dirname(tex_path)
     fname = os.path.basename(tex_path)
+    pdf_path = tex_path.replace('.tex', '.pdf')
+    
+    logger.info(f"Starting LaTeX compilation for {fname}")
+    
+    # Try local latexmk first
     try:
-        _latexmk(cwd, fname)
+        result = _latexmk(cwd, fname)
+        if os.path.exists(pdf_path):
+            logger.info(f"PDF compiled successfully with latexmk: {pdf_path}")
+            return True
+        else:
+            logger.warning(f"latexmk completed but PDF not found: {pdf_path}")
     except Exception as e1:
+        logger.warning(f"Local latexmk failed for {fname}: {e1}")
+        
+        # Try Docker as fallback
         try:
-            _docker_latexmk(cwd, fname)
+            logger.info(f"Attempting Docker compilation for {fname}")
+            result = _docker_latexmk(cwd, fname)
+            if os.path.exists(pdf_path):
+                logger.info(f"PDF compiled successfully with Docker: {pdf_path}")
+                return True
+            else:
+                logger.warning(f"Docker latexmk completed but PDF not found: {pdf_path}")
         except Exception as e2:
-            # If both LaTeX compilation methods fail, just log and continue
-            # The LaTeX files are still generated and can be used with Overleaf
-            print(f"LaTeX compilation failed (both local and Docker): {e1}, {e2}")
-            print(f"LaTeX source file available at: {tex_path}")
-            # Don't raise an exception, just continue without PDF
+            logger.error(f"Both compilation methods failed for {fname}")
+            logger.error(f"Local error: {e1}")
+            logger.error(f"Docker error: {e2}")
+            logger.info(f"TEX source file available for manual compilation: {tex_path}")
+    
+    return False
 
 def bundle(run_id:str):
+    """Create ZIP bundle with PDFs prioritized"""
     zip_path = os.path.join(ART_DIR, f"{run_id}_bundle.zip")
+    
     with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
-        # Add PDFs if they exist
-        for f in glob.glob(os.path.join(ART_DIR, f"{run_id}_*.pdf")):
+        # First, add PDFs (primary deliverables)
+        pdf_files = glob.glob(os.path.join(ART_DIR, f"{run_id}_*.pdf"))
+        for f in pdf_files:
             zf.write(f, arcname=os.path.basename(f))
-        # Always add the .tex files
-        for f in glob.glob(os.path.join(ART_DIR, f"{run_id}_*.tex")):
+            logger.info(f"Added PDF to bundle: {os.path.basename(f)}")
+        
+        # Then add TEX files (for manual compilation if needed)
+        tex_files = glob.glob(os.path.join(ART_DIR, f"{run_id}_*.tex"))
+        for f in tex_files:
             zf.write(f, arcname=os.path.basename(f))
+            logger.info(f"Added TEX to bundle: {os.path.basename(f)}")
+    
+    logger.info(f"Bundle created: {zip_path} ({len(pdf_files)} PDFs, {len(tex_files)} TEX files)")
     return zip_path

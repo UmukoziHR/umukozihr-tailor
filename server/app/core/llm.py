@@ -1,11 +1,13 @@
 import os
 import json
+import logging
 from dotenv import load_dotenv
 from google import genai
 from google.genai.types import Tool, Schema, GenerateContentConfig
 
 # Load environment variables
 load_dotenv()
+logger = logging.getLogger(__name__)
 
 
 SYSTEM = (
@@ -71,7 +73,10 @@ def build_user_prompt(profile_min_json:str, jd_text:str, region_rules:dict, sele
 def call_llm(prompt:str)->str:
     api_key = os.getenv("GEMINI_API_KEY")
     if not api_key:
+        logger.error("GEMINI_API_KEY environment variable not set")
         raise RuntimeError("GEMINI_API_KEY not set")
+    
+    logger.info(f"Calling Gemini LLM with prompt length: {len(prompt)} characters")
     client = genai.Client(api_key=api_key)
     cfg = GenerateContentConfig(
         response_mime_type="application/json",
@@ -81,11 +86,16 @@ def call_llm(prompt:str)->str:
         candidate_count=1,
         max_output_tokens=4000,
     )
-    response = client.models.generate_content(
-        model="gemini-2.5-flash",
-        contents=[f"{SYSTEM}\n\n{prompt}"],
-        config=cfg,
-    )
-
-    # the sdk returns .text for JSON string
-    return response.text or "{}"
+    
+    try:
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=[f"{SYSTEM}\n\n{prompt}"],
+            config=cfg,
+        )
+        result = response.text or "{}"
+        logger.info(f"LLM response received successfully, length: {len(result)} characters")
+        return result
+    except Exception as e:
+        logger.error(f"LLM call failed: {e}")
+        raise
