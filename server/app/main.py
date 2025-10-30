@@ -5,6 +5,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.routes.v1_profile import router as profile_router
 from app.routes.v1_generate import router as generate_router
 from app.routes.v1_auth import router as auth_router
+from app.routes.v1_jd import router as jd_router
+from app.routes.v1_history import router as history_router
 import os
 
 # Configure logging
@@ -18,8 +20,8 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-app = FastAPI(title="UmukoziHR Resume Tailor API", version="v1.2")
-logger.info("Starting UmukoziHR Resume Tailor API v1.2")
+app = FastAPI(title="UmukoziHR Resume Tailor API", version="v1.3")
+logger.info("Starting UmukoziHR Resume Tailor API v1.3")
 
 # Add CORS middleware
 app.add_middleware(
@@ -32,9 +34,11 @@ app.add_middleware(
 logger.info("CORS middleware configured")
 
 app.include_router(auth_router)
-app.include_router(profile_router, prefix="/api/v1/profile")
+app.include_router(profile_router, prefix="/api/v1")
 app.include_router(generate_router, prefix="/api/v1/generate")
-logger.info("API routes registered successfully")
+app.include_router(jd_router, prefix="/api/v1")
+app.include_router(history_router, prefix="/api/v1")
+logger.info("API routes registered successfully (v1.3 endpoints active)")
 
 @app.get("/health")
 def health_check():

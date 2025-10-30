@@ -208,3 +208,98 @@ AttributeError: module 'bcrypt' has no attribute '__about__'
 2025-09-29 14:50:50,617 - app.core.tex_compile - INFO - Bundle created: C:\Users\Jason\Desktop\UmukoziHR\umukozihr-tailor\artifacts\0f59310c-2e6f-4507-a364-536f05589cc3_bundle.zip (2 PDFs, 2 TEX files)
 2025-09-29 14:50:50,617 - app.routes.v1_generate - INFO - Document generation completed for run_id: 0f59310c-2e6f-4507-a364-536f05589cc3
 2025-09-29 14:50:50,617 - app.routes.v1_generate - INFO - Generated 1 artifacts, bundle: C:\Users\Jason\Desktop\UmukoziHR\umukozihr-tailor\artifacts\0f59310c-2e6f-4507-a364-536f05589cc3_bundle.zip
+2025-10-30 10:13:12,156 - app.main - INFO - Starting UmukoziHR Resume Tailor API v1.2
+2025-10-30 10:13:12,158 - app.main - INFO - CORS middleware configured
+2025-10-30 10:13:12,163 - app.main - INFO - API routes registered successfully
+2025-10-30 10:13:12,166 - app.main - INFO - Artifacts directory mounted at /artifacts: C:\Users\Jason\Desktop\UmukoziHR\umukozihr-tailor\artifacts
+2025-10-30 10:13:14,995 - app.main - INFO - Starting UmukoziHR Resume Tailor API v1.2
+2025-10-30 10:13:14,995 - app.main - INFO - CORS middleware configured
+2025-10-30 10:13:15,001 - app.main - INFO - API routes registered successfully
+2025-10-30 10:13:15,004 - app.main - INFO - Artifacts directory mounted at /artifacts: C:\Users\Jason\Desktop\UmukoziHR\umukozihr-tailor\artifacts
+2025-10-30 10:16:11,801 - app.routes.v1_auth - INFO - Signup attempt for email: hiregenai.team@gmail.com
+2025-10-30 10:16:11,859 - passlib.handlers.bcrypt - WARNING - (trapped) error reading bcrypt version
+Traceback (most recent call last):
+  File "C:\Users\Jason\AppData\Local\Programs\Python\Python311\Lib\site-packages\passlib\handlers\bcrypt.py", line 620, in _load_backend_mixin
+    version = _bcrypt.__about__.__version__
+              ^^^^^^^^^^^^^^^^^
+AttributeError: module 'bcrypt' has no attribute '__about__'
+2025-10-30 10:16:11,897 - app.routes.v1_auth - INFO - User created successfully: hiregenai.team@gmail.com with ID: 64f8665a-b674-4653-ae8f-4f7e69b10d02
+2025-10-30 10:16:11,899 - app.routes.v1_auth - INFO - Access token generated for user: 64f8665a-b674-4653-ae8f-4f7e69b10d02
+2025-10-30 18:21:41,782 - app.main - INFO - Starting UmukoziHR Resume Tailor API v1.3
+2025-10-30 18:21:41,782 - app.main - INFO - CORS middleware configured
+2025-10-30 18:21:41,786 - app.main - INFO - API routes registered successfully (v1.3 endpoints active)
+2025-10-30 18:21:41,787 - app.main - INFO - Artifacts directory mounted at /artifacts: C:\Users\Jason\Desktop\UmukoziHR\umukozihr-tailor\artifacts
+2025-10-30 18:22:20,580 - app.main - INFO - Health check requested
+2025-10-30 18:24:15,403 - app.routes.v1_auth - INFO - Signup attempt for email: jason@umukozihr.com
+2025-10-30 18:24:15,417 - app.routes.v1_auth - WARNING - Signup failed - email already registered: jason@umukozihr.com
+2025-10-30 18:24:53,291 - app.routes.v1_auth - INFO - Login attempt for email: jason@umukozihr.com
+2025-10-30 18:24:53,291 - app.routes.v1_auth - WARNING - Login failed - invalid credentials for email: jason@umukozihr.com
+2025-10-30 18:24:59,485 - app.routes.v1_auth - INFO - Signup attempt for email: team@umukozihr.com
+2025-10-30 18:24:59,531 - passlib.handlers.bcrypt - WARNING - (trapped) error reading bcrypt version
+Traceback (most recent call last):
+  File "C:\Users\Jason\AppData\Local\Programs\Python\Python311\Lib\site-packages\passlib\handlers\bcrypt.py", line 620, in _load_backend_mixin
+    version = _bcrypt.__about__.__version__
+              ^^^^^^^^^^^^^^^^^
+AttributeError: module 'bcrypt' has no attribute '__about__'
+2025-10-30 18:24:59,584 - app.routes.v1_auth - INFO - User created successfully: team@umukozihr.com with ID: 8d90d6ae-ab52-4ab1-b563-5d20ebc4fe4f
+2025-10-30 18:24:59,584 - app.routes.v1_auth - INFO - Access token generated for user: 8d90d6ae-ab52-4ab1-b563-5d20ebc4fe4f
+2025-10-30 18:24:59,585 - app.routes.v1_profile - INFO - Fetching profile for user: 8d90d6ae-ab52-4ab1-b563-5d20ebc4fe4f
+2025-10-30 18:25:06,189 - app.routes.v1_auth - INFO - Login attempt for email: team@umukozihr.com
+2025-10-30 18:25:06,190 - app.routes.v1_auth - INFO - Login successful for user: 8d90d6ae-ab52-4ab1-b563-5d20ebc4fe4f
+2025-10-30 18:25:06,196 - app.routes.v1_profile - INFO - Fetching profile for user: 8d90d6ae-ab52-4ab1-b563-5d20ebc4fe4f
+2025-10-30 18:25:13,994 - app.routes.v1_auth - INFO - Login attempt for email: team@umukozihr.com
+2025-10-30 18:25:13,994 - app.routes.v1_auth - INFO - Login successful for user: 8d90d6ae-ab52-4ab1-b563-5d20ebc4fe4f
+2025-10-30 18:25:14,002 - app.routes.v1_profile - INFO - Fetching profile for user: 8d90d6ae-ab52-4ab1-b563-5d20ebc4fe4f
+2025-10-30 18:26:14,719 - app.routes.v1_profile - INFO - Fetching profile for user: 8d90d6ae-ab52-4ab1-b563-5d20ebc4fe4f
+2025-10-30 18:26:32,243 - app.routes.v1_auth - INFO - Login attempt for email: team@umukozihr.com
+2025-10-30 18:26:32,245 - app.routes.v1_auth - INFO - Login successful for user: 8d90d6ae-ab52-4ab1-b563-5d20ebc4fe4f
+2025-10-30 18:26:32,253 - app.routes.v1_profile - INFO - Fetching profile for user: 8d90d6ae-ab52-4ab1-b563-5d20ebc4fe4f
+2025-10-30 18:26:33,414 - app.routes.v1_profile - INFO - Fetching profile for user: 8d90d6ae-ab52-4ab1-b563-5d20ebc4fe4f
+2025-10-30 18:27:47,147 - app.routes.v1_auth - INFO - Login attempt for email: team@umukozihr.com
+2025-10-30 18:27:47,149 - app.routes.v1_auth - INFO - Login successful for user: 8d90d6ae-ab52-4ab1-b563-5d20ebc4fe4f
+2025-10-30 18:27:47,263 - app.routes.v1_profile - INFO - Fetching profile for user: 8d90d6ae-ab52-4ab1-b563-5d20ebc4fe4f
+2025-10-30 18:27:47,379 - app.routes.v1_profile - INFO - Fetching profile for user: 8d90d6ae-ab52-4ab1-b563-5d20ebc4fe4f
+2025-10-30 18:32:49,718 - app.main - INFO - Starting UmukoziHR Resume Tailor API v1.3
+2025-10-30 18:32:49,718 - app.main - INFO - CORS middleware configured
+2025-10-30 18:32:49,721 - app.main - INFO - API routes registered successfully (v1.3 endpoints active)
+2025-10-30 18:32:49,721 - app.main - INFO - Artifacts directory mounted at /artifacts: C:\Users\Jason\Desktop\UmukoziHR\umukozihr-tailor\artifacts
+2025-10-30 18:36:33,328 - app.routes.v1_profile - INFO - Fetching profile for user: 8d90d6ae-ab52-4ab1-b563-5d20ebc4fe4f
+2025-10-30 18:41:08,692 - app.routes.v1_profile - INFO - Updating profile for user: 8d90d6ae-ab52-4ab1-b563-5d20ebc4fe4f
+2025-10-30 18:41:08,693 - app.routes.v1_profile - INFO - Profile completeness: 5.0% - Breakdown: {'basics': 5.0, 'experience': 0, 'education': 0, 'projects': 0, 'skills': 0, 'links': 0}
+2025-10-30 18:41:08,712 - app.routes.v1_profile - INFO - Profile created successfully
+2025-10-30 18:41:20,146 - app.routes.v1_profile - INFO - Updating profile for user: 8d90d6ae-ab52-4ab1-b563-5d20ebc4fe4f
+2025-10-30 18:41:20,147 - app.routes.v1_profile - INFO - Profile completeness: 8.0% - Breakdown: {'basics': 8.0, 'experience': 0, 'education': 0, 'projects': 0, 'skills': 0, 'links': 0}
+2025-10-30 18:41:20,160 - app.routes.v1_profile - INFO - Profile updated successfully to version 2
+2025-10-30 18:41:29,206 - app.routes.v1_profile - INFO - Updating profile for user: 8d90d6ae-ab52-4ab1-b563-5d20ebc4fe4f
+2025-10-30 18:41:29,206 - app.routes.v1_profile - INFO - Profile completeness: 11.0% - Breakdown: {'basics': 11.0, 'experience': 0, 'education': 0, 'projects': 0, 'skills': 0, 'links': 0}
+2025-10-30 18:41:29,218 - app.routes.v1_profile - INFO - Profile updated successfully to version 3
+2025-10-30 18:41:37,479 - app.routes.v1_profile - INFO - Updating profile for user: 8d90d6ae-ab52-4ab1-b563-5d20ebc4fe4f
+2025-10-30 18:41:37,480 - app.routes.v1_profile - INFO - Profile completeness: 13.0% - Breakdown: {'basics': 13.0, 'experience': 0, 'education': 0, 'projects': 0, 'skills': 0, 'links': 0}
+2025-10-30 18:41:37,492 - app.routes.v1_profile - INFO - Profile updated successfully to version 4
+2025-10-30 18:41:44,226 - app.routes.v1_profile - INFO - Updating profile for user: 8d90d6ae-ab52-4ab1-b563-5d20ebc4fe4f
+2025-10-30 18:41:44,226 - app.routes.v1_profile - INFO - Profile completeness: 15.0% - Breakdown: {'basics': 15.0, 'experience': 0, 'education': 0, 'projects': 0, 'skills': 0, 'links': 0}
+2025-10-30 18:41:44,239 - app.routes.v1_profile - INFO - Profile updated successfully to version 5
+2025-10-30 18:41:49,225 - app.routes.v1_profile - INFO - Updating profile for user: 8d90d6ae-ab52-4ab1-b563-5d20ebc4fe4f
+2025-10-30 18:41:49,225 - app.routes.v1_profile - INFO - Profile completeness: 17.0% - Breakdown: {'basics': 15.0, 'experience': 0, 'education': 0, 'projects': 0, 'skills': 0, 'links': 2}
+2025-10-30 18:41:49,236 - app.routes.v1_profile - INFO - Profile updated successfully to version 6
+2025-10-30 18:41:59,912 - app.routes.v1_profile - INFO - Updating profile for user: 8d90d6ae-ab52-4ab1-b563-5d20ebc4fe4f
+2025-10-30 18:41:59,912 - app.routes.v1_profile - INFO - Profile completeness: 17.0% - Breakdown: {'basics': 15.0, 'experience': 0, 'education': 0, 'projects': 0, 'skills': 0, 'links': 2}
+2025-10-30 18:41:59,926 - app.routes.v1_profile - INFO - Profile updated successfully to version 7
+2025-10-30 18:42:04,096 - app.routes.v1_profile - INFO - Updating profile for user: 8d90d6ae-ab52-4ab1-b563-5d20ebc4fe4f
+2025-10-30 18:42:04,096 - app.routes.v1_profile - INFO - Profile completeness: 18.0% - Breakdown: {'basics': 15.0, 'experience': 0, 'education': 0, 'projects': 0, 'skills': 0, 'links': 3}
+2025-10-30 18:42:04,108 - app.routes.v1_profile - INFO - Profile updated successfully to version 8
+2025-10-30 18:42:04,398 - app.routes.v1_profile - INFO - Updating profile for user: 8d90d6ae-ab52-4ab1-b563-5d20ebc4fe4f
+2025-10-30 18:42:04,398 - app.routes.v1_profile - INFO - Profile completeness: 18.0% - Breakdown: {'basics': 15.0, 'experience': 0, 'education': 0, 'projects': 0, 'skills': 0, 'links': 3}
+2025-10-30 18:42:04,410 - app.routes.v1_profile - INFO - Profile updated successfully to version 9
+2025-10-30 18:42:08,392 - app.routes.v1_profile - INFO - Updating profile for user: 8d90d6ae-ab52-4ab1-b563-5d20ebc4fe4f
+2025-10-30 18:42:08,392 - app.routes.v1_profile - INFO - Profile completeness: 22.0% - Breakdown: {'basics': 15.0, 'experience': 4, 'education': 0, 'projects': 0, 'skills': 0, 'links': 3}
+2025-10-30 18:42:08,404 - app.routes.v1_profile - INFO - Profile updated successfully to version 10
+2025-10-30 18:50:24,858 - app.routes.v1_profile - INFO - Updating profile for user: 8d90d6ae-ab52-4ab1-b563-5d20ebc4fe4f
+2025-10-30 18:50:24,858 - app.routes.v1_profile - INFO - Profile completeness: 22.0% - Breakdown: {'basics': 15.0, 'experience': 4, 'education': 0, 'projects': 0, 'skills': 0, 'links': 3}
+2025-10-30 18:50:24,874 - app.routes.v1_profile - INFO - Profile updated successfully to version 11
+2025-10-30 18:56:59,671 - app.routes.v1_profile - INFO - Updating profile for user: 8d90d6ae-ab52-4ab1-b563-5d20ebc4fe4f
+2025-10-30 18:56:59,671 - app.routes.v1_profile - INFO - Profile completeness: 27.0% - Breakdown: {'basics': 20.0, 'experience': 4, 'education': 0, 'projects': 0, 'skills': 0, 'links': 3}
+2025-10-30 18:56:59,685 - app.routes.v1_profile - INFO - Profile updated successfully to version 12
+2025-10-30 18:57:06,620 - app.routes.v1_profile - INFO - Updating profile for user: 8d90d6ae-ab52-4ab1-b563-5d20ebc4fe4f
+2025-10-30 18:57:06,620 - app.routes.v1_profile - INFO - Profile completeness: 27.0% - Breakdown: {'basics': 20.0, 'experience': 4, 'education': 0, 'projects': 0, 'skills': 0, 'links': 3}
+2025-10-30 18:57:06,634 - app.routes.v1_profile - INFO - Profile updated successfully to version 13

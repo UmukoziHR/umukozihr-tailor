@@ -16,3 +16,5 @@ boto3
 passlib
 python-jose
 email-validator==2.1.0
+requests
+beautifulsoup4
