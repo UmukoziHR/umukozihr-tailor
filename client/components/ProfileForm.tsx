@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { api } from "../lib/api";
+import { useState, useEffect } from "react";
+import { profile as profileApi } from "../lib/api";
 import toast from 'react-hot-toast';
 import { Plus, Save, Mail, Phone, MapPin, Link, GraduationCap, Briefcase, Code } from "lucide-react";
 
@@ -16,15 +16,35 @@ export default function ProfileForm({onSave}:{onSave:(p:any)=>void}) {
 
   const [linkText, setLinkText] = useState("");
 
+  useEffect(() => {
+    // Load saved profile from localStorage
+    const savedProfile = localStorage.getItem('userProfile');
+    if (savedProfile) {
+      try {
+        const parsed = JSON.parse(savedProfile);
+        setP(parsed);
+        onSave(parsed);
+      } catch (error) {
+        console.error('Error parsing saved profile:', error);
+      }
+    }
+  }, [onSave]);
+
   function addSkill(s:string){
     if(!s.trim()) return;
     
     // Check if the input contains commas (pasted list)
     if(s.includes(',')) {
       const skills = s.split(',').map(skill => skill.trim()).filter(skill => skill.length > 0);
-      setP((prev:any)=>({...prev, skills:[...prev.skills, ...skills]}));
+      const updated = {...p, skills:[...p.skills, ...skills]};
+      setP(updated);
+      localStorage.setItem('userProfile', JSON.stringify(updated));
+      onSave(updated);
     } else {
-      setP((prev:any)=>({...prev, skills:[...prev.skills, s.trim()]}));
+      const updated = {...p, skills:[...p.skills, s.trim()]};
+      setP(updated);
+      localStorage.setItem('userProfile', JSON.stringify(updated));
+      onSave(updated);
     }
   }
   function addLink(){
@@ -113,8 +133,9 @@ export default function ProfileForm({onSave}:{onSave:(p:any)=>void}) {
     const saveToast = toast.loading('💾 Saving your profile...');
     
     try {
-      await api.post("/profile/profile", p);
+      await profileApi.save(p);
       onSave(p);
+      localStorage.setItem('userProfile', JSON.stringify(p));
       toast.success(
         `✓ Profile saved successfully!`,
         { 

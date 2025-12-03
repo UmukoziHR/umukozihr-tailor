@@ -9,7 +9,7 @@ importers:
   .:
     dependencies:
       axios:
-        specifier: ^1.6.0
+        specifier: ^1.6.2
         version: 1.12.2
       lucide-react:
         specifier: ^0.544.0
@@ -26,6 +26,9 @@ importers:
       react-hot-toast:
         specifier: ^2.6.0
         version: 2.6.0(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
+      typescript:
+        specifier: ^5.0.0
+        version: 5.9.2
     devDependencies:
       '@tailwindcss/forms':
         specifier: ^0.5.10
@@ -54,9 +57,6 @@ importers:
       tailwindcss:
         specifier: ^3.4.17
         version: 3.4.17
-      typescript:
-        specifier: ^5.0.0
-        version: 5.9.2
 
 packages:
 

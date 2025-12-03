@@ -5,10 +5,45 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 @layer base {
+  :root {
+    /* Light mode - Orange Theme */
+    --color-primary: 249 115 22; /* orange-600 */
+    --color-primary-hover: 234 88 12; /* orange-700 */
+    --color-primary-light: 255 237 213; /* orange-100 */
+    --color-primary-lighter: 255 247 237; /* orange-50 */
+
+    --color-background: 250 250 249; /* stone-50 */
+    --color-background-alt: 255 255 255; /* white */
+    --color-surface: 255 255 255; /* white */
+    --color-border: 229 231 235; /* gray-200 */
+
+    --color-text-primary: 26 26 26; /* gray-900 */
+    --color-text-secondary: 75 85 99; /* gray-600 */
+    --color-text-tertiary: 156 163 175; /* gray-400 */
+  }
+
+  .dark {
+    /* Dark mode - Orange Theme */
+    --color-primary: 249 115 22; /* orange-600 */
+    --color-primary-hover: 251 146 60; /* orange-500 */
+    --color-primary-light: 124 45 18; /* orange-900 */
+    --color-primary-lighter: 67 20 7; /* orange-950 */
+
+    --color-background: 23 23 23; /* neutral-900 */
+    --color-background-alt: 38 38 38; /* neutral-800 */
+    --color-surface: 38 38 38; /* neutral-800 */
+    --color-border: 64 64 64; /* neutral-700 */
+
+    --color-text-primary: 250 250 250; /* neutral-50 */
+    --color-text-secondary: 212 212 212; /* neutral-300 */
+    --color-text-tertiary: 163 163 163; /* neutral-400 */
+  }
+
   body {
     font-family: 'Inter', ui-sans-serif, system-ui;
-    background-color: #fafaf9;
-    color: #1a1a1a;
+    background-color: rgb(var(--color-background));
+    color: rgb(var(--color-text-primary));
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
 }
 

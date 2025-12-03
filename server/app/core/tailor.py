@@ -1,10 +1,12 @@
 # Improved Tailor pipeline: pre-filter -> LLM -> validate -> repair
 
-import re, json
+import re, json, logging
 from collections import Counter
 from .llm import build_user_prompt, call_llm, SYSTEM, OUTPUT_JSON_SCHEMA
 from .validate import validate_or_error, business_rules_check
 from app.models import Profile, JobJD, LLMOutput
+
+logger = logging.getLogger(__name__)
 
 STOP = set("""a an the and or for to of in on at with from by as is are was were be been being will would should could into about over under within across""".split())
 
@@ -37,7 +39,10 @@ def region_rules(region:str)->dict:
     return {"pages":2,"style":"no photo; refs on request ok","date_format":"YYYY-MM"}
 
 def run_tailor(profile: Profile, job: JobJD)->LLMOutput:
+    logger.info(f"Starting tailoring process for job: {job.id or job.title} at {job.company}")
     selected = select_topk_bullets(profile, job.jd_text)
+    logger.info(f"Selected {len(selected)} top bullets from profile for job matching")
+    
     prompt = build_user_prompt(
         profile_min_json=profile.model_dump_json(),
         jd_text=job.jd_text,
@@ -45,9 +50,29 @@ def run_tailor(profile: Profile, job: JobJD)->LLMOutput:
         selected_bullets_json=json.dumps(selected, ensure_ascii=False),
         schema_json=json.dumps(OUTPUT_JSON_SCHEMA.to_json_dict(), ensure_ascii=False),
     )
+    logger.info(f"Built LLM prompt for {job.region} region, prompt length: {len(prompt)} chars")
+    
     raw = call_llm(prompt)
+    logger.info(f"LLM response received, length: {len(raw)} chars")
+    logger.debug(f"Raw LLM response (first 500 chars): {raw[:500]}")
+
     # call validator to check the schema
-    data = validate_or_error(raw)
+    try:
+        data = validate_or_error(raw)
+        logger.info("LLM output passed schema validation")
+    except Exception as validation_error:
+        logger.error(f"Schema validation failed: {validation_error}")
+        logger.error(f"Full raw LLM response that failed validation: {raw}")
+        raise
+
     # check to make sure it is grounded with facts
-    business_rules_check(data, profile)
+    try:
+        business_rules_check(data, profile)
+        logger.info("LLM output passed business rules validation")
+    except Exception as business_error:
+        logger.error(f"Business rules validation failed: {business_error}")
+        logger.error(f"Data that failed business rules: {json.dumps(data, indent=2)}")
+        raise
+    
+    logger.info(f"Tailoring process completed successfully for job: {job.id or job.title}")
     return LLMOutput(**data)

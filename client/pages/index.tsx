@@ -1,236 +1,180 @@
-import { useState } from "react";
-import { api } from "../lib/api";
-import ProfileForm from "../components/ProfileForm";
-import JDInput from "../components/JDInput";
-import JobCard from "../components/JobCard";
-import toast from 'react-hot-toast';
-import { FileText, Zap, Download, ExternalLink, Briefcase, User, Target } from "lucide-react";
-
-type Artifact = {
-  job_id: string;
-  region: "US" | "EU" | "GL";
-  resume_pdf: string;
-  cover_letter_pdf: string;
-  resume_tex: string;
-  cover_letter_tex: string;
-  created_at: string;
-  updated_at: string;
-};
+import { useState, useEffect } from "react";
+import { useRouter } from "next/router";
+import { profile as profileApi } from "../lib/api";
+import LoginForm from "../components/LoginForm";
+import ThemeToggle from "../components/ThemeToggle";
+import { FileText, Zap, Target, CheckCircle } from "lucide-react";
 
 export default function Home() {
-  const [profile, setProfile] = useState<any>(null);
-  const [jobs, setJobs] = useState<any[]>([]);
-  const [result, setResult] = useState<{ run: string; artifacts: Artifact[]; zip: string } | null>(null);
-  const [loading, setLoading] = useState(false);
-  const canGenerate = !!profile && jobs.length > 0 && !loading;
+  const router = useRouter();
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
-  async function generate() {
-    setLoading(true);
-    const loadingToast = toast.loading('🤖 AI is crafting your tailored documents...');
-    
-    try {
-      const res = await api.post("/generate/generate", { profile, jobs, prefs:{} });
-      setResult(res.data);
-      
-      toast.success(
-        `🎉 Successfully generated ${res.data.artifacts.length} document${res.data.artifacts.length !== 1 ? 's' : ''}!`,
-        { id: loadingToast }
-      );
-      
-      // Show additional success details
-      setTimeout(() => {
-        toast.success('📁 ZIP bundle ready for download', {
-          icon: '📦',
-        });
-      }, 1000);
-      
-    } catch (e: any) {
-      const errorMessage = e?.response?.data?.detail || "Generation failed";
-      toast.error(
-        `❌ ${errorMessage}`,
-        { id: loadingToast }
-      );
-      
-      // Show helpful tips for common errors
-      if (errorMessage.includes('API key')) {
-        setTimeout(() => {
-          toast.error('🔑 Please check your Gemini API key configuration');
-        }, 1000);
-      } else if (errorMessage.includes('validation')) {
-        setTimeout(() => {
-          toast.error('📝 Please verify your profile information is complete');
-        }, 1000);
-      }
-    } finally {
-      setLoading(false);
+  useEffect(() => {
+    checkAuthAndRedirect();
+  }, []);
+
+  const checkAuthAndRedirect = async () => {
+    const token = localStorage.getItem('token');
+
+    if (!token) {
+      // No token, stay on landing/login page
+      setIsCheckingAuth(false);
+      return;
     }
-  }
 
-  function removeJob(idx:number){
-    const job = jobs[idx];
-    setJobs(prev => prev.filter((_,i)=>i!==idx));
-    
-    toast.success(
-      `🗑️ Removed "${job.title}" from ${job.company}`,
-      {
-        icon: '❌',
-        duration: 2000,
+    // Token exists, check if profile exists
+    try {
+      const response = await profileApi.get();
+      if (response.data.profile) {
+        // Profile exists, redirect to /app
+        router.push('/app');
+      } else {
+        // No profile, redirect to onboarding
+        router.push('/onboarding');
       }
+    } catch (error: any) {
+      if (error.response?.status === 404) {
+        // No profile found, redirect to onboarding
+        router.push('/onboarding');
+      } else {
+        // Other error, token might be invalid
+        localStorage.removeItem('token');
+        setIsCheckingAuth(false);
+      }
+    }
+  };
+
+  const handleLogin = async (token: string) => {
+    // After login, check if profile exists
+    console.log('handleLogin called with token:', token ? 'present' : 'missing');
+
+    // Small delay to ensure token is properly stored
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    try {
+      console.log('Checking for existing profile...');
+      const response = await profileApi.get();
+      console.log('Profile response:', response.data);
+
+      if (response.data && response.data.profile) {
+        console.log('Profile exists, redirecting to /app');
+        await router.push('/app');
+      } else {
+        console.log('No profile data, redirecting to /onboarding');
+        await router.push('/onboarding');
+      }
+    } catch (error: any) {
+      console.log('Profile check error:', error);
+      console.log('Error status:', error.response?.status);
+      console.log('Error data:', error.response?.data);
+
+      // For 404 or any error, redirect to onboarding (new user flow)
+      console.log('Redirecting to /onboarding for new user');
+      await router.push('/onboarding');
+    }
+  };
+
+  if (isCheckingAuth) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 to-amber-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-gray-100">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-6xl mx-auto px-4 py-8">
-          <div className="flex items-center gap-4 mb-4">
-            <div className="p-3 bg-orange-500 rounded-xl">
-              <FileText className="w-8 h-8 text-white" />
-            </div>
-            <div>
-              <h1 className="text-4xl font-bold text-gray-900">UmukoziHR Resume Tailor</h1>
-              <p className="text-lg text-gray-600 mt-1">AI-Powered Resume & Cover Letter Generator</p>
-            </div>
-          </div>
-          <p className="text-gray-700 max-w-3xl">
-            Create a profile once, add multiple job descriptions, and generate perfectly tailored resumes and cover letters for each position. 
-            Powered by advanced AI with ATS optimization.
-          </p>
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-amber-100 dark:from-neutral-900 dark:to-neutral-800">
+      {/* Theme Toggle - Top Right */}
+      <div className="absolute top-4 right-4">
+        <ThemeToggle />
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 py-8 space-y-8">
-        {/* Profile Section */}
-        <section className="card p-8">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 bg-brand-orange/10 rounded-lg">
-              <User className="w-6 h-6 text-brand-orange" />
-            </div>
-            <h2 className="text-2xl font-semibold text-brand-black">Your Profile</h2>
-            {profile && (
-              <span className="ml-auto px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium">
-                ✓ Saved
-              </span>
-            )}
+      {/* Hero Section */}
+      <div className="container mx-auto px-4 py-16">
+        <div className="max-w-6xl mx-auto">
+          {/* Header */}
+          <div className="text-center mb-12">
+            <h1 className="text-5xl font-bold text-gray-900 dark:text-neutral-50 mb-4">
+              UmukoziHR Resume Tailor
+            </h1>
+            <p className="text-xl text-gray-700 dark:text-neutral-300 mb-2">
+              AI-Powered Resume & Cover Letter Generation
+            </p>
+            <p className="text-gray-600 dark:text-neutral-400">
+              Tailor your resume to any job posting in seconds
+            </p>
           </div>
-          <ProfileForm onSave={setProfile} />
-        </section>
 
-        {/* Jobs Section */}
-        <section className="card p-8">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 bg-brand-orange/10 rounded-lg">
-              <Briefcase className="w-6 h-6 text-brand-orange" />
-            </div>
-            <h2 className="text-2xl font-semibold text-brand-black">Job Descriptions</h2>
-            {jobs.length > 0 && (
-              <span className="ml-auto px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
-                {jobs.length} job{jobs.length !== 1 ? 's' : ''} added
-              </span>
-            )}
-          </div>
-          
-          <JDInput onAdd={(j:any)=>setJobs(s=>[...s,j])} />
-          
-          {jobs.length > 0 && (
-            <div className="mt-8 space-y-4">
-              <h3 className="text-lg font-medium text-brand-black flex items-center gap-2">
-                <Target className="w-5 h-5 text-brand-orange" />
-                Target Positions
+          {/* Features */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+            <div className="bg-white dark:bg-neutral-800 rounded-lg shadow-md p-6 text-center">
+              <div className="bg-orange-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <FileText className="text-orange-600" size={32} />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-neutral-50 mb-2">
+                Smart Tailoring
               </h3>
-              {jobs.map((j, idx)=>(
-                <div key={idx} className="flex items-center justify-between p-4 bg-brand-gray-warm rounded-lg border border-brand-gray-cool">
-                  <div className="flex-1">
-                    <div className="font-semibold text-brand-black text-lg">{j.company} — {j.title}</div>
-                    <div className="text-sm text-gray-600 mt-1">
-                      ID: {j.id || "(auto-generated)"} • Region: 
-                      <span className="ml-1 px-2 py-1 bg-white rounded text-xs font-medium">{j.region}</span>
-                    </div>
-                  </div>
-                  <button 
-                    onClick={()=>removeJob(idx)} 
-                    className="ml-4 px-4 py-2 text-red-600 hover:bg-red-50 border border-red-200 rounded-lg transition-colors duration-200 font-medium"
-                  >
-                    Remove
-                  </button>
-                </div>
-              ))}
+              <p className="text-gray-600 dark:text-neutral-400 text-sm">
+                AI analyzes job descriptions and highlights your most relevant experience
+              </p>
             </div>
-          )}
-          
-          <div className="mt-8 pt-6 border-t border-brand-gray-cool">
-            <button 
-              onClick={generate} 
-              disabled={!canGenerate}
-              className={`btn-primary w-full py-4 text-lg font-semibold flex items-center justify-center gap-3 ${
-                !canGenerate ? 'opacity-50 cursor-not-allowed' : 'hover:shadow-lg'
-              }`}
-            >
-              {loading ? (
-                <>
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                  Generating...
-                </>
-              ) : (
-                <>
-                  <Zap className="w-6 h-6" />
-                  Generate Tailored Documents
-                </>
-              )}
-            </button>
-            {!profile && (
-              <p className="text-center text-gray-500 mt-3 text-sm">Please save your profile first</p>
-            )}
-            {profile && jobs.length === 0 && (
-              <p className="text-center text-gray-500 mt-3 text-sm">Add at least one job description to continue</p>
-            )}
-          </div>
-        </section>
 
-        {/* Results Section */}
-        {result && (
-          <section className="card p-8">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-green-100 rounded-lg">
-                  <FileText className="w-6 h-6 text-green-600" />
-                </div>
-                <div>
-                  <h2 className="text-2xl font-semibold text-brand-black">Generated Documents</h2>
-                  <p className="text-gray-600 mt-1">Run ID: {result.run} • {result.artifacts.length} output{result.artifacts.length !== 1 ? 's' : ''}</p>
-                </div>
+            <div className="bg-white dark:bg-neutral-800 rounded-lg shadow-md p-6 text-center">
+              <div className="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Zap className="text-green-600" size={32} />
               </div>
-              
-              <div className="flex items-center gap-3">
-                <a 
-                  href={result.zip} 
-                  download 
-                  className="btn-secondary flex items-center gap-2"
-                  onClick={() => toast.success('📦 ZIP bundle download started!')}
-                >
-                  <Download className="w-5 h-5" />
-                  Download ZIP
-                </a>
-                <form action="https://www.overleaf.com/docs" method="post" target="_blank">
-                  <input type="hidden" name="snip_uri" value={`${location.origin}${result.zip}`} />
-                  <button 
-                    type="submit" 
-                    className="btn-primary flex items-center gap-2"
-                    onClick={() => toast.success('🚀 Opening in Overleaf...')}
-                  >
-                    <ExternalLink className="w-5 h-5" />
-                    Open in Overleaf
-                  </button>
-                </form>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-neutral-50 mb-2">
+                Lightning Fast
+              </h3>
+              <p className="text-gray-600 dark:text-neutral-400 text-sm">
+                Generate professional PDFs and LaTeX files in seconds
+              </p>
+            </div>
+
+            <div className="bg-white dark:bg-neutral-800 rounded-lg shadow-md p-6 text-center">
+              <div className="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Target className="text-purple-600" size={32} />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-neutral-50 mb-2">
+                Region-Specific
+              </h3>
+              <p className="text-gray-600 dark:text-neutral-400 text-sm">
+                Templates optimized for US, EU, and Global job markets
+              </p>
+            </div>
+          </div>
+
+          {/* Login Form */}
+          <div className="max-w-md mx-auto">
+            <div className="bg-white dark:bg-neutral-800 rounded-lg shadow-lg p-8">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-neutral-50 mb-6 text-center">
+                Get Started
+              </h2>
+              <LoginForm onLogin={handleLogin} />
+            </div>
+          </div>
+
+          {/* Footer Info */}
+          <div className="mt-12 text-center">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-3xl mx-auto">
+              <div className="flex items-center justify-center gap-2 text-sm text-gray-700 dark:text-neutral-300">
+                <CheckCircle className="text-green-600" size={16} />
+                Profile Once, Reuse Forever
+              </div>
+              <div className="flex items-center justify-center gap-2 text-sm text-gray-700 dark:text-neutral-300">
+                <CheckCircle className="text-green-600" size={16} />
+                ATS-Optimized Output
+              </div>
+              <div className="flex items-center justify-center gap-2 text-sm text-gray-700 dark:text-neutral-300">
+                <CheckCircle className="text-green-600" size={16} />
+                Overleaf Integration
               </div>
             </div>
-            
-            <div className="space-y-4">
-              {result.artifacts.map(a => <JobCard key={a.job_id} data={a} />)}
-            </div>
-          </section>
-        )}
+          </div>
+        </div>
       </div>
     </div>
   );

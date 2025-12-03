@@ -1,6 +1,18 @@
-# UmukoziHR Resume Tailor (UmukoziHR Resume Tailor)
+# UmukoziHR Resume Tailor v1.2
 
-An AI-powered tool for job seekers to instantly generate tailored resumes and cover letters for any job posting. Simply create your profile once, add job descriptions, and let our Gemini-powered AI craft perfectly tailored documents with ATS optimization and regional formatting.
+🎆 **AI-Powered Resume & Cover Letter Generation Platform**
+
+An intelligent system that generates perfectly tailored resumes and cover letters for any job posting. Simply create your profile once, add job descriptions, and let our Gemini-powered AI craft ATS-optimized documents with regional formatting support.
+
+## ✨ **What's New in v1.2**
+
+- 🔐 **JWT Authentication System** - Secure user authentication with login/signup
+- 🚀 **Real-time Generation** - Immediate document processing with status tracking
+- 💾 **Auto-Save Profiles** - Local storage persistence to prevent data loss
+- 🔄 **Enhanced Error Handling** - Comprehensive logging and fallback systems
+- 🌐 **CORS Support** - Full frontend-backend integration
+- 📁 **Improved File Management** - Better artifact organization and download
+- 🐛 **Bug Fixes** - Resolved UUID handling, field name mismatches, and compilation issues
 
 ## 🏗️ Architecture Overview
 
@@ -35,27 +47,35 @@ UmukoziHR Resume Tailor is a full-stack application with a clean separation betw
 umukozihr-tailor/
 ├── client/                    # Next.js frontend application
 │   ├── components/           # React components
+│   │   ├── LoginForm.tsx     # Authentication component (NEW in v1.2)
 │   │   ├── ProfileForm.tsx   # User profile input form
 │   │   ├── JDInput.tsx       # Job description input
-│   │   └── JobCard.tsx       # Generated artifact display
+│   │   ├── JobCard.tsx       # Generated artifact display
+│   │   └── StatusToast.tsx   # Status notifications (NEW)
 │   ├── lib/
-│   │   └── api.ts           # Axios API client configuration
+│   │   └── api.ts           # Axios API client with auth (UPDATED)
 │   ├── pages/
 │   │   ├── _app.tsx         # Next.js app wrapper with styling
-│   │   └── index.tsx        # Main application page
+│   │   └── index.tsx        # Main application page (UPDATED)
 │   ├── styles/
 │   │   └── globals.css      # Tailwind CSS + custom styles
 │   ├── next.config.js       # API proxy configuration
 │   └── package.json         # Dependencies and scripts
 ├── server/                  # FastAPI backend application
 │   ├── app/
+│   │   ├── auth/           # Authentication system (NEW in v1.2)
+│   │   │   └── auth.py     # JWT token management
 │   │   ├── core/           # Core business logic modules
 │   │   │   ├── tailor.py   # Main tailoring pipeline
 │   │   │   ├── llm.py      # Gemini LLM integration
 │   │   │   ├── validate.py # JSON schema validation
 │   │   │   ├── tex_compile.py # LaTeX rendering & compilation
 │   │   │   └── ingest.py   # File parsing utilities (PDF/DOCX)
+│   │   ├── db/             # Database models (NEW in v1.2)
+│   │   │   ├── database.py # Database configuration
+│   │   │   └── models.py   # SQLAlchemy user models
 │   │   ├── routes/         # API endpoints
+│   │   │   ├── v1_auth.py     # Authentication endpoints (NEW)
 │   │   │   ├── v1_profile.py  # Profile save endpoint
 │   │   │   └── v1_generate.py # Document generation endpoint
 │   │   ├── templates/      # Jinja2 LaTeX templates
@@ -216,71 +236,58 @@ curl -X POST http://localhost:8000/api/v1/generate/generate \
   -d '{"profile":{...},"jobs":[{"company":"Google","title":"SWE","region":"US","jd_text":"..."}]}'
 ```
 
-## 🚀 Setup & Installation
+## 🚀 **Quick Start Guide**
 
 ### Prerequisites
+- **Node.js** 18+ (for frontend)
+- **Python** 3.9+ (for backend)
+- **Google Gemini API Key** ([Get one here](https://ai.google.dev/))
+- **Docker** (optional, for LaTeX compilation)
 
-- **Node.js**: v18+ (for Next.js client)
-- **Python**: 3.9+ (for FastAPI server)
-- **LaTeX**: Local installation OR Docker (for PDF compilation)
-- **Gemini API Key**: From Google AI Studio
+### 📋 Step-by-Step Setup
 
-### Environment Variables
-
-Create `.env` in `server/` directory:
-```bash
-GEMINI_API_KEY=your_gemini_api_key_here
-```
-
-### Installation Steps
-
-1. **Clone and setup**:
+1. **Clone the repository**
 ```bash
 git clone <repository>
 cd umukozihr-tailor
 ```
 
-2. **Backend setup**:
+2. **Backend Setup**
 ```bash
 cd server
+python -m venv venv
+source venv/bin/activate  # or venv\Scripts\activate on Windows
 pip install -r requirements.txt
+
+# Create .env file
+echo "GEMINI_API_KEY=your_api_key_here" > .env
+
+# Start backend server
+uvicorn app.main:app --host 0.0.0.0 --port 8000
 ```
 
-3. **Frontend setup**:
+3. **Frontend Setup**
 ```bash
 cd client
 npm install
-```
-
-4. **LaTeX setup** (choose one):
-   - **Local**: Install TexLive or MikTeX with `latexmk`
-   - **Docker**: `docker pull blang/latex:ctanfull`
-
-### Running the Application
-
-1. **Start the backend** (Terminal 1):
-```bash
-cd server
-uvicorn app.main:app --reload --port 8000
-```
-
-2. **Start the frontend** (Terminal 2):
-```bash
-cd client
 npm run dev
 ```
 
-3. **Access the application**:
-   - Frontend: http://localhost:3000
-   - Backend API: http://localhost:8000
-   - API Docs: http://localhost:8000/docs
+4. **Access the Application**
+- **Frontend**: http://localhost:3000
+- **Backend API**: http://localhost:8000
+- **API Docs**: http://localhost:8000/docs
 
-### Testing the Flow
+### 🎯 Usage
+1. Create an account or login
+2. Fill out your professional profile
+3. Add job descriptions you want to apply for
+4. Generate tailored documents
+5. Download PDFs or edit in Overleaf
 
-1. **Create a profile** with your professional information
-2. **Add a job description** (paste from any job posting)
-3. **Generate documents** and download the ZIP bundle
-4. **Open in Overleaf** for further editing if needed
+**For detailed setup instructions, see the individual README files:**
+- 💻 [Client README](client/README.md) - Frontend setup and development
+- 📡 [Server README](server/README.md) - Backend API and configuration
 
 ## 📝 LaTeX Templates
 

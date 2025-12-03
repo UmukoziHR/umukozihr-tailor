@@ -1,0 +1,169 @@
+# UmukoziHR Resume Tailor v1.3 - Docker Compose Configuration
+# Works for both local development and production deployment
+
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: umukozihr-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-umukozihr}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme_local_dev_only}
+      POSTGRES_DB: ${POSTGRES_DB:-umukozihr_resume_tailor}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-umukozihr}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - umukozihr-network
+
+  # Redis Cache & Queue
+  redis:
+    image: redis:7-alpine
+    container_name: umukozihr-redis
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - umukozihr-network
+
+  # LaTeX Compiler (for PDF generation)
+  latex:
+    build: ./tex_docker
+    container_name: umukozihr-latex
+    volumes:
+      - ./artifacts:/artifacts
+    restart: unless-stopped
+    networks:
+      - umukozihr-network
+
+  # FastAPI Backend
+  api:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: umukozihr-api
+    ports:
+      - "${API_PORT:-8000}:8000"
+    environment:
+      # Database
+      DATABASE_URL: postgresql://${POSTGRES_USER:-umukozihr}:${POSTGRES_PASSWORD:-changeme_local_dev_only}@postgres/${POSTGRES_DB:-umukozihr_resume_tailor}
+
+      # Redis
+      REDIS_URL: redis://redis:6379/0
+
+      # Security (MUST set in production!)
+      SECRET_KEY: ${SECRET_KEY:-dev-secret-change-in-production}
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+
+      # AWS S3 (optional)
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+      AWS_REGION: ${AWS_REGION:-us-east-1}
+      S3_BUCKET: ${S3_BUCKET:-}
+
+      # Application Config
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:3000,http://localhost:3001}
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./server:/app
+      - ./artifacts:/app/artifacts
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+    networks:
+      - umukozihr-network
+
+  # Celery Worker (Background Tasks)
+  celery-worker:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: umukozihr-celery
+    command: celery -A app.queue.tasks worker --loglevel=${LOG_LEVEL:-INFO}
+    environment:
+      # Database
+      DATABASE_URL: postgresql://${POSTGRES_USER:-umukozihr}:${POSTGRES_PASSWORD:-changeme_local_dev_only}@postgres/${POSTGRES_DB:-umukozihr_resume_tailor}
+
+      # Redis
+      REDIS_URL: redis://redis:6379/0
+
+      # Security
+      SECRET_KEY: ${SECRET_KEY:-dev-secret-change-in-production}
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+
+      # AWS S3 (optional)
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+      AWS_REGION: ${AWS_REGION:-us-east-1}
+      S3_BUCKET: ${S3_BUCKET:-}
+
+      # Application Config
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./server:/app
+      - ./artifacts:/app/artifacts
+    restart: unless-stopped
+    networks:
+      - umukozihr-network
+
+  # Next.js Frontend (optional - for full-stack deployment)
+  # Uncomment if deploying frontend with Docker
+  # frontend:
+  #   build:
+  #     context: ./client
+  #     dockerfile: Dockerfile
+  #   container_name: umukozihr-frontend
+  #   ports:
+  #     - "3000:3000"
+  #   environment:
+  #     NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+  #   depends_on:
+  #     - api
+  #   restart: unless-stopped
+  #   networks:
+  #     - umukozihr-network
+
+networks:
+  umukozihr-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local

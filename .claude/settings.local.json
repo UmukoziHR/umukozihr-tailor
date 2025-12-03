@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cat:*)",
+      "Bash(python -m pip install:*)",
+      "Bash(python migrate.py:*)",
+      "Bash(python start.py:*)",
+      "Bash(timeout /t 5)",
+      "Bash(python -m uvicorn:*)",
+      "Bash(ping:*)",
+      "Bash(curl:*)",
+      "Bash(npm run dev:*)",
+      "Bash(timeout /t 3)",
+      "Bash(python:*)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(taskkill:*)",
+      "Bash(taskkill /F /PID 1228 /T)",
+      "Bash(powershell -Command \"Stop-Process -Id 39468 -Force\")",
+      "Bash(dir:*)",
+      "Bash(git checkout:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

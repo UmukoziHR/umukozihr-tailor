@@ -1,11 +1,13 @@
 import os
 import json
+import logging
 from dotenv import load_dotenv
 from google import genai
 from google.genai.types import Tool, Schema, GenerateContentConfig
 
 # Load environment variables
 load_dotenv()
+logger = logging.getLogger(__name__)
 
 
 SYSTEM = (
@@ -71,7 +73,10 @@ def build_user_prompt(profile_min_json:str, jd_text:str, region_rules:dict, sele
 def call_llm(prompt:str)->str:
     api_key = os.getenv("GEMINI_API_KEY")
     if not api_key:
+        logger.error("GEMINI_API_KEY environment variable not set")
         raise RuntimeError("GEMINI_API_KEY not set")
+    
+    logger.info(f"Calling Gemini LLM with prompt length: {len(prompt)} characters")
     client = genai.Client(api_key=api_key)
     cfg = GenerateContentConfig(
         response_mime_type="application/json",
@@ -81,11 +86,49 @@ def call_llm(prompt:str)->str:
         candidate_count=1,
         max_output_tokens=4000,
     )
-    response = client.models.generate_content(
-        model="gemini-2.5-flash",
-        contents=[f"{SYSTEM}\n\n{prompt}"],
-        config=cfg,
-    )
+    
+    try:
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=[f"{SYSTEM}\n\n{prompt}"],
+            config=cfg,
+        )
 
-    # the sdk returns .text for JSON string
-    return response.text or "{}"
+        # Log detailed response information for debugging
+        logger.debug(f"LLM response object type: {type(response)}")
+        logger.debug(f"LLM response candidates count: {len(response.candidates) if hasattr(response, 'candidates') else 'N/A'}")
+
+        # Check for blocking or safety issues
+        if hasattr(response, 'prompt_feedback') and response.prompt_feedback:
+            logger.info(f"LLM prompt feedback: {response.prompt_feedback}")
+            if hasattr(response.prompt_feedback, 'block_reason') and response.prompt_feedback.block_reason:
+                logger.error(f"LLM prompt blocked! Reason: {response.prompt_feedback.block_reason}")
+                raise RuntimeError(f"LLM prompt blocked: {response.prompt_feedback.block_reason}")
+
+        # Check if we have candidates
+        if hasattr(response, 'candidates') and response.candidates:
+            candidate = response.candidates[0]
+            if hasattr(candidate, 'finish_reason'):
+                logger.info(f"LLM finish reason: {candidate.finish_reason}")
+                if candidate.finish_reason and str(candidate.finish_reason) != 'STOP':
+                    logger.warning(f"LLM finished with non-STOP reason: {candidate.finish_reason}")
+
+            if hasattr(candidate, 'safety_ratings'):
+                logger.debug(f"LLM safety ratings: {candidate.safety_ratings}")
+
+        # Get the actual text response
+        result = response.text if response.text else None
+
+        if not result:
+            logger.error("LLM returned empty response!")
+            logger.error(f"Full response object: {response}")
+            raise RuntimeError("LLM returned empty response. Check prompt feedback and safety ratings above.")
+
+        logger.info(f"LLM response received successfully, length: {len(result)} characters")
+        logger.debug(f"LLM response preview (first 200 chars): {result[:200]}")
+        return result
+
+    except Exception as e:
+        logger.error(f"LLM call failed: {e}")
+        logger.error(f"Exception type: {type(e).__name__}")
+        raise
