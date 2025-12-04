@@ -71,28 +71,38 @@ def build_user_prompt(profile_min_json:str, jd_text:str, region_rules:dict, sele
         )
 
 def call_llm(prompt:str)->str:
+    logger.info(f"=== LLM CALL START ===")
+
     api_key = os.getenv("GEMINI_API_KEY")
     if not api_key:
-        logger.error("GEMINI_API_KEY environment variable not set")
+        logger.error("=== LLM ERROR === GEMINI_API_KEY environment variable not set")
         raise RuntimeError("GEMINI_API_KEY not set")
-    
-    logger.info(f"Calling Gemini LLM with prompt length: {len(prompt)} characters")
-    client = genai.Client(api_key=api_key)
-    cfg = GenerateContentConfig(
-        response_mime_type="application/json",
-        response_schema=OUTPUT_JSON_SCHEMA,
-        temperature=0.2,
-        top_p=0.9,
-        candidate_count=1,
-        max_output_tokens=4000,
-    )
-    
+
+    logger.info(f"API key found, length: {len(api_key)} chars")
+    logger.info(f"Prompt length: {len(prompt)} chars")
+    logger.info(f"Creating Gemini client...")
+
     try:
+        client = genai.Client(api_key=api_key)
+        logger.info(f"Gemini client created successfully")
+
+        logger.info(f"Configuring generation settings: model=gemini-2.5-flash, temp=0.2, max_tokens=4000")
+        cfg = GenerateContentConfig(
+            response_mime_type="application/json",
+            response_schema=OUTPUT_JSON_SCHEMA,
+            temperature=0.2,
+            top_p=0.9,
+            candidate_count=1,
+            max_output_tokens=4000,
+        )
+
+        logger.info(f"Sending request to Gemini API...")
         response = client.models.generate_content(
             model="gemini-2.5-flash",
             contents=[f"{SYSTEM}\n\n{prompt}"],
             config=cfg,
         )
+        logger.info(f"Gemini API call completed, processing response...")
 
         # Log detailed response information for debugging
         logger.debug(f"LLM response object type: {type(response)}")
@@ -102,7 +112,7 @@ def call_llm(prompt:str)->str:
         if hasattr(response, 'prompt_feedback') and response.prompt_feedback:
             logger.info(f"LLM prompt feedback: {response.prompt_feedback}")
             if hasattr(response.prompt_feedback, 'block_reason') and response.prompt_feedback.block_reason:
-                logger.error(f"LLM prompt blocked! Reason: {response.prompt_feedback.block_reason}")
+                logger.error(f"=== LLM ERROR === Prompt blocked! Reason: {response.prompt_feedback.block_reason}")
                 raise RuntimeError(f"LLM prompt blocked: {response.prompt_feedback.block_reason}")
 
         # Check if we have candidates
@@ -117,18 +127,20 @@ def call_llm(prompt:str)->str:
                 logger.debug(f"LLM safety ratings: {candidate.safety_ratings}")
 
         # Get the actual text response
+        logger.info(f"Extracting text from LLM response...")
         result = response.text if response.text else None
 
         if not result:
-            logger.error("LLM returned empty response!")
+            logger.error("=== LLM ERROR === Returned empty response!")
             logger.error(f"Full response object: {response}")
             raise RuntimeError("LLM returned empty response. Check prompt feedback and safety ratings above.")
 
-        logger.info(f"LLM response received successfully, length: {len(result)} characters")
+        logger.info(f"=== LLM CALL SUCCESS === Response length: {len(result)} chars")
         logger.debug(f"LLM response preview (first 200 chars): {result[:200]}")
         return result
 
     except Exception as e:
-        logger.error(f"LLM call failed: {e}")
+        logger.error(f"=== LLM CALL ERROR === {str(e)}", exc_info=True)
         logger.error(f"Exception type: {type(e).__name__}")
+        logger.error(f"Prompt that caused error (first 500 chars): {prompt[:500]}")
         raise

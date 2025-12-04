@@ -39,40 +39,57 @@ def region_rules(region:str)->dict:
     return {"pages":2,"style":"no photo; refs on request ok","date_format":"YYYY-MM"}
 
 def run_tailor(profile: Profile, job: JobJD)->LLMOutput:
-    logger.info(f"Starting tailoring process for job: {job.id or job.title} at {job.company}")
-    selected = select_topk_bullets(profile, job.jd_text)
-    logger.info(f"Selected {len(selected)} top bullets from profile for job matching")
-    
-    prompt = build_user_prompt(
-        profile_min_json=profile.model_dump_json(),
-        jd_text=job.jd_text,
-        region_rules=region_rules(job.region),
-        selected_bullets_json=json.dumps(selected, ensure_ascii=False),
-        schema_json=json.dumps(OUTPUT_JSON_SCHEMA.to_json_dict(), ensure_ascii=False),
-    )
-    logger.info(f"Built LLM prompt for {job.region} region, prompt length: {len(prompt)} chars")
-    
-    raw = call_llm(prompt)
-    logger.info(f"LLM response received, length: {len(raw)} chars")
-    logger.debug(f"Raw LLM response (first 500 chars): {raw[:500]}")
+    logger.info(f"=== TAILOR START === Job: {job.id or job.title}, Company: {job.company}, Region: {job.region}")
 
-    # call validator to check the schema
     try:
-        data = validate_or_error(raw)
-        logger.info("LLM output passed schema validation")
-    except Exception as validation_error:
-        logger.error(f"Schema validation failed: {validation_error}")
-        logger.error(f"Full raw LLM response that failed validation: {raw}")
-        raise
+        logger.info(f"Selecting top bullets from profile (name: {profile.name})")
+        selected = select_topk_bullets(profile, job.jd_text)
+        logger.info(f"Selected {len(selected)} top bullets from {len(profile.experience)} experience entries")
+        logger.debug(f"Top 3 selected bullets: {selected[:3]}")
 
-    # check to make sure it is grounded with facts
-    try:
-        business_rules_check(data, profile)
-        logger.info("LLM output passed business rules validation")
-    except Exception as business_error:
-        logger.error(f"Business rules validation failed: {business_error}")
-        logger.error(f"Data that failed business rules: {json.dumps(data, indent=2)}")
+        logger.info(f"Determining region rules for: {job.region}")
+        reg_rules = region_rules(job.region)
+        logger.info(f"Region rules: {reg_rules}")
+
+        logger.info(f"Building LLM prompt for job: {job.id or job.title}")
+        prompt = build_user_prompt(
+            profile_min_json=profile.model_dump_json(),
+            jd_text=job.jd_text,
+            region_rules=reg_rules,
+            selected_bullets_json=json.dumps(selected, ensure_ascii=False),
+            schema_json=json.dumps(OUTPUT_JSON_SCHEMA.to_json_dict(), ensure_ascii=False),
+        )
+        logger.info(f"LLM prompt built - length: {len(prompt)} chars, JD length: {len(job.jd_text)} chars")
+
+        logger.info(f"Calling LLM for job: {job.id or job.title}")
+        raw = call_llm(prompt)
+        logger.info(f"LLM response received - length: {len(raw)} chars")
+        logger.debug(f"Raw LLM response (first 500 chars): {raw[:500]}")
+
+        # call validator to check the schema
+        logger.info(f"Validating LLM output schema for job: {job.id or job.title}")
+        try:
+            data = validate_or_error(raw)
+            logger.info("LLM output passed schema validation successfully")
+        except Exception as validation_error:
+            logger.error(f"=== SCHEMA VALIDATION FAILED === Job: {job.id or job.title}")
+            logger.error(f"Validation error: {validation_error}")
+            logger.error(f"Full raw LLM response that failed validation (length: {len(raw)}): {raw}")
+            raise
+
+        # check to make sure it is grounded with facts
+        logger.info(f"Performing business rules validation for job: {job.id or job.title}")
+        try:
+            business_rules_check(data, profile)
+            logger.info("LLM output passed business rules validation successfully")
+        except Exception as business_error:
+            logger.error(f"=== BUSINESS RULES VALIDATION FAILED === Job: {job.id or job.title}")
+            logger.error(f"Business rules error: {business_error}")
+            logger.error(f"Data that failed business rules: {json.dumps(data, indent=2)}")
+            raise
+
+        logger.info(f"=== TAILOR SUCCESS === Job: {job.id or job.title}, Resume bullets: {len(data.get('resume', {}).get('experience', []))}, Cover letter paragraphs: {len(data.get('cover_letter', {}).get('body_paragraphs', []))}")
+        return LLMOutput(**data)
+    except Exception as e:
+        logger.error(f"=== TAILOR ERROR === Job: {job.id or job.title}, Error: {str(e)}", exc_info=True)
         raise
-    
-    logger.info(f"Tailoring process completed successfully for job: {job.id or job.title}")
-    return LLMOutput(**data)
