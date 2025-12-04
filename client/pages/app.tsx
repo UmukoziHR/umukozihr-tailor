@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import toast from 'react-hot-toast';
 import { profile as profileApi, generation as generationApi, history as historyApi } from '@/lib/api';
+import { config } from '@/lib/config';
 import { ProfileV3, HistoryItem } from '@/lib/types';
 import CompletenessBar from '@/components/CompletenessBar';
 import JDComposer from '@/components/JDComposer';
@@ -180,9 +181,8 @@ export default function AppPage() {
   };
 
   const handleDownload = (url: string, filename: string) => {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
     const link = document.createElement('a');
-    link.href = `${apiUrl}${url}`;
+    link.href = `${config.apiUrl}${url}`;
     link.download = filename;
     link.target = '_blank';
     document.body.appendChild(link);

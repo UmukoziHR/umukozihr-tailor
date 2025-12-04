@@ -1,7 +1,26 @@
 import axios from 'axios';
 
-// Create base API instance with environment variable support
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+// Auto-detect API URL based on environment
+function getApiBaseUrl(): string {
+  // If explicitly set, use that
+  if (process.env.NEXT_PUBLIC_API_URL) {
+    return process.env.NEXT_PUBLIC_API_URL;
+  }
+  
+  // Vercel environment detection
+  const vercelEnv = process.env.VERCEL_ENV || process.env.NODE_ENV;
+  
+  if (vercelEnv === 'production') {
+    return 'https://umukozihr-tailor-api.onrender.com';
+  } else if (vercelEnv === 'preview') {
+    return 'https://umukozihr-tailor-api-staging.onrender.com';
+  }
+  
+  // Default to localhost for development
+  return 'http://localhost:8000';
+}
+
+const API_BASE_URL = getApiBaseUrl();
 
 export const api = axios.create({
   baseURL: `${API_BASE_URL}/api/v1`

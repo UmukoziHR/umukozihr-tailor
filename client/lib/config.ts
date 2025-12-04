@@ -3,9 +3,29 @@
  * Centralizes environment variables and configuration constants
  */
 
+// Auto-detect API URL based on environment
+function getApiBaseUrl(): string {
+  // If explicitly set, use that
+  if (process.env.NEXT_PUBLIC_API_URL) {
+    return process.env.NEXT_PUBLIC_API_URL;
+  }
+  
+  // Vercel environment detection
+  const vercelEnv = process.env.VERCEL_ENV || process.env.NODE_ENV;
+  
+  if (vercelEnv === 'production') {
+    return 'https://umukozihr-tailor-api.onrender.com';
+  } else if (vercelEnv === 'preview') {
+    return 'https://umukozihr-tailor-api-staging.onrender.com';
+  }
+  
+  // Default to localhost for development
+  return 'http://localhost:8000';
+}
+
 export const config = {
-  // API Base URL - defaults to localhost for development
-  apiUrl: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000',
+  // API Base URL - auto-detected based on environment
+  apiUrl: getApiBaseUrl(),
 
   // Application version
   version: '1.3.0',
