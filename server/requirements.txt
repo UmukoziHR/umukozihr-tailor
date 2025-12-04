@@ -15,7 +15,7 @@ redis
 boto3
 passlib
 python-jose
-email-validator==2.1.0
+email-validator
 requests
 beautifulsoup4
 httpx
