@@ -42,8 +42,10 @@ function getApiBaseUrl(): string {
 }
 
 export const config = {
-  // API Base URL - auto-detected based on environment
-  apiUrl: getApiBaseUrl(),
+  // API Base URL - call getApiBaseUrl() to get current value
+  get apiUrl() {
+    return getApiBaseUrl();
+  },
 
   // Application version
   version: '1.3.0',
@@ -54,7 +56,7 @@ export const config = {
     enableProfileVersioning: true,
     enableHistoryTracking: true,
   }
-} as const;
+};
 
 /**
  * Get full URL for an artifact path
@@ -62,5 +64,5 @@ export const config = {
  * @returns Full URL including API base
  */
 export function getArtifactUrl(path: string): string {
-  return `${config.apiUrl}${path}`;
+  return `${getApiBaseUrl()}${path}`;
 }

@@ -38,15 +38,18 @@ function getApiBaseUrl(): string {
   return 'http://localhost:8000';
 }
 
-const API_BASE_URL = getApiBaseUrl();
-
+// Create axios instance with dynamic baseURL
 export const api = axios.create({
-  baseURL: `${API_BASE_URL}/api/v1`
+  baseURL: '/api/v1'  // Will be set dynamically
 });
 
 // Add request interceptor for auth and logging
 api.interceptors.request.use(
   (config) => {
+    // Set baseURL dynamically on each request
+    const apiBaseUrl = getApiBaseUrl();
+    config.baseURL = `${apiBaseUrl}/api/v1`;
+
     const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
