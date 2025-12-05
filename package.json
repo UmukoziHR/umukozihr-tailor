@@ -1,0 +1,11 @@
+{
+  "name": "umukozihr-tailor-monorepo",
+  "version": "1.3.0",
+  "private": true,
+  "packageManager": "pnpm@10.0.0",
+  "scripts": {
+    "build": "pnpm --filter client build",
+    "dev": "pnpm --filter client dev",
+    "start": "pnpm --filter client start"
+  }
+}
