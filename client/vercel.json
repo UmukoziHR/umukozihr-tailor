@@ -1,5 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "installCommand": "cd .. && pnpm install",
-  "buildCommand": "cd .. && pnpm --filter umukozihr-tailor-client build"
+  "buildCommand": "cd .. && pnpm --filter umukozihr-tailor-client build",
+  "outputDirectory": "client/.next"
 }
