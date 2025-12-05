@@ -4,8 +4,8 @@
   "private": true,
   "packageManager": "pnpm@10.0.0",
   "scripts": {
-    "build": "pnpm --filter client build",
-    "dev": "pnpm --filter client dev",
-    "start": "pnpm --filter client start"
+    "build": "pnpm --filter umukozihr-tailor-client build",
+    "dev": "pnpm --filter umukozihr-tailor-client dev",
+    "start": "pnpm --filter umukozihr-tailor-client start"
   }
 }
